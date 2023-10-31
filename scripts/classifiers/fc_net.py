@@ -233,7 +233,17 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dims = [input_dim] + hidden_dims + [num_classes]
+        
+        for ii in range(self.num_layers):
+            nrows = dims[ii]
+            ncols = dims[ii + 1]
+
+            _layer_str_name = "%d" % (ii + 1)
+            _weights_str_name = "W" + _layer_str_name
+            _bias_str_name = "b" + _layer_str_name
+            self.params[_weights_str_name] = weight_scale * np.random.randn(nrows, ncols)
+            self.params[_bias_str_name] = np.zeros(ncols)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -295,7 +305,26 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        caches = {}
+        scores = X
+        
+        for ii in range(1, self.num_layers + 1):
+            _layer_str_name = "%d" % ii
+            _W_str_name = "W" + _layer_str_name
+            _b_str_name = "b" + _layer_str_name
+            _cache_str_name = "cache" + _layer_str_name
+            _dropout_str_name = "dropout" + _layer_str_name
+      
+            if self.num_layers == ii:
+                scores, cache = affine_forward(scores, self.params[_W_str_name], self.params[_b_str_name])
+
+            else:
+              scores, cache = affine_relu_forward(scores, self.params[_W_str_name], self.params[_b_str_name])
+
+              if self.use_dropout:
+                      scores, caches[_dropout_str_name] = dropout_forward(scores, self.dropout_param)
+  
+            caches[_cache_str_name] = cache
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -322,7 +351,27 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        grads = {}
+        loss, dx = softmax_loss(scores, y)
+        
+        for ii in range(self.num_layers, 0, -1):
+            _layer_str_name = "%d" % ii
+            _W_str_name = "W" + _layer_str_name
+            _b_str_name = "b" + _layer_str_name
+            _cache_str_name = "cache" + _layer_str_name
+            _dropout_str_name = "dropout" + _layer_str_name
+      
+            loss += np.sum(0.5 * self.reg * self.params[_W_str_name] ** 2)
+      
+            if self.num_layers == ii:
+                dx, grads[_W_str_name], grads[_b_str_name] = affine_backward(dx, caches[_cache_str_name])
+            else:
+              if self.use_dropout:
+                dx = dropout_backward(dx, caches[_dropout_str_name])
+              
+              (dx, grads[_W_str_name], grads[_b_str_name]) = affine_relu_backward(dx, caches[_cache_str_name])
+
+            grads[_W_str_name] += self.reg * self.params[_W_str_name]
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################

@@ -69,7 +69,9 @@ def sgd_momentum(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    next_w = w - config['learning_rate'] * dw
+    v = config['momentum'] * v - config['learning_rate'] * dw
+    next_w = w + v
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -107,7 +109,12 @@ def rmsprop(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    cache = config['cache']
+    cache = config['decay_rate'] * cache + (1 - config['decay_rate']) * dw ** 2
+    next_w = w - config['learning_rate'] * dw / (np.sqrt(cache) + config['epsilon'])
+
+    config['cache'] = cache
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -152,7 +159,18 @@ def adam(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+
+    config['t'] += 1
+    m = config['beta1'] * config['m'] + (1 - config['beta1']) * dw
+    v = config['beta2'] * config['v'] + (1 - config['beta2']) * (dw ** 2)
+
+    # https://cs231n.github.io/neural-networks-3/#sgd
+    mb = m / (1 - config['beta1'] ** config['t'])
+    vb = v / (1 - config['beta2'] ** config['t'])
+    next_w = w - config['learning_rate'] * mb / (np.sqrt(vb) + config['epsilon'])
+
+    config['m'] = m
+    config['v'] = v
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
